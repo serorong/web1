@@ -128,6 +128,14 @@ function updateCamera(){
   state.cam.y = Math.max(0, Math.min(window.WORLD.H*TILE - vh, state.py - vh/2));
 }
 
+// 국회도서관(M03) 건물 바깥 테두리 꽃 16칸
+// building(10,26,7,5) → x:7-13, y:24-28 → 바깥: 상y=23, 하y=29, 좌x=6, 우x=14
+const GARDEN_BORDER = [
+  [7,23],[8,23],[9,23],[10,23],[11,23],[12,23],[13,23], // 윗줄 7개
+  [7,29],[8,29],[9,29],[10,29],[11,29],[12,29],[13,29], // 아랫줄 7개
+  [6,26],[14,26]                                        // 좌우 중간 각 1개
+];
+
 // 포켓몬 센터 내 포켓몬 표시용 슬롯 (센터: cx=28, cy=20, 내부 x:25-31, y:18-21)
 const CENTER_SLOTS = [
   [26,19],[27,19],[29,19],[30,19],
@@ -179,6 +187,21 @@ function render(){
       ctx.fillStyle = "#ff8aa0";
       ctx.font = `${Math.floor(TILE*0.5)}px sans-serif`;
       ctx.fillText("♥", sx + TILE*0.5, sy - TILE*0.1 - bob);
+    });
+  }
+
+  // ── 국회도서관 텃밭 꽃 — 건물 바깥 테두리에 심은 꽃 표시 ──
+  if(G.gardenPlants && G.gardenPlants.some(id => id !== null)){
+    const flowers = window.DATA.FLOWERS || [];
+    G.gardenPlants.forEach((fid, i) => {
+      if(fid === null || i >= GARDEN_BORDER.length) return;
+      const flower = flowers.find(f => f.id === fid);
+      if(!flower) return;
+      const [bgx, bgy] = GARDEN_BORDER[i];
+      const bpx = bgx*TILE - cx;
+      const bpy = bgy*TILE - cy;
+      if(bpx < -TILE*2 || bpx > canvas.width+TILE || bpy < -TILE*2 || bpy > canvas.height+TILE) return;
+      window.WORLD.drawTile(ctx, flower.color, bpx, bpy, TILE, bgx, bgy);
     });
   }
 

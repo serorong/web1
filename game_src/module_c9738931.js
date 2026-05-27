@@ -261,6 +261,14 @@ function handleNPC(npc){
     return;
   }
   if(npc.id === "nurse"){
+    if(state.flags.finalDone){
+      window.UI.showDialog([
+        "잘했어! 최고야! 🎉",
+        "신의국의 삼권분립을 완벽하게 이해했구나!",
+        "앞으로도 민주주의를 지키는 멋진 시민이 되어줘!"
+      ], npc.name);
+      return;
+    }
     window.UI.showDialog(npc.lines, npc.name, () => {
       window.QUIZ.openCenterMenu(()=> { updateQuest(); });
     });
@@ -418,8 +426,9 @@ function checkAllHiddenComplete(){
     save();
     setTimeout(() => {
       window.UI.showDialog([
-        "자 이제 정말 끝이야! 수고 많았어.",
-        "이제 수학 단원평가를 하러 가자!"
+        "정말 대단해! 모든 포켓몬을 다 찾았구나!",
+        "이렇게 권력 분립을 통해서 한 국가기관이 권력을 독차지하지 않게 하고,",
+        "국민의 자유와 권리를 보장한다는 걸 이제 알겠지?"
       ], "착한 이세린 선생님");
     }, 800);
   }
