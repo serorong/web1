@@ -148,6 +148,8 @@ function buildWorld(){
   building(g, 44, 6, 6, 4, { wallTile:40, doorY:7, roofDec:60 });
   // 신의국 교실 — 빨간 벽돌 + 시계
   building(g, 8, 6, 7, 5, { wallTile:41, doorY:8, roofDec:52 });
+  // 포켓몬 센터 — 빨간 벽돌 + 십자가
+  building(g, 28, 20, 9, 6, { wallTile:41, doorY:22, roofDec:51, floorTile:7 });
   // 센터 내부 카펫 추가
   fillRect(g, 25, 18, 31, 21, 7);
   // 숨겨진 창고 — 갈색 나무 + 짚더미

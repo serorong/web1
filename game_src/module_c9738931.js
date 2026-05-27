@@ -307,6 +307,11 @@ function handleNPC(npc){
   if(npc.id === "sejong_event")  { handleSejongEvent();  return; }
   if(npc.id === "patent_event")  { handlePatentEvent();  return; }
   if(npc.id === "library_event") { handleLibraryEvent(); return; }
+  if(npc.id === "nurse_npc"){
+    healAll();
+    window.UI.showDialog(["포켓몬이 모두 회복되었어요! ♥"], "센터 간호사");
+    return;
+  }
 
   window.UI.showDialog(npc.lines, npc.name);
 }

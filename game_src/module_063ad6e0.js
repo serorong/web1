@@ -70,6 +70,7 @@ const MAPS = [
   { id:"M11", name:"중앙선거관리위원회",      center:[44, 6],  signPos:[47, 9] },
   { id:"M12", name:"버려진 투표함",           center:[52, 14], signPos:[54, 17] },
   { id:"M13", name:"신의국 교실",             center:[8,  6],  signPos:[5, 10] },
+  { id:"M14", name:"포켓몬 센터",             center:[28, 20], signPos:[28, 24] },
   { id:"M15", name:"숨겨진 창고",             center:[2,  20], signPos:[2, 24] },
 ];
 
@@ -103,6 +104,8 @@ const NPCS = [
     lines:["대전 특허법원에 오신 걸 환영해요!"] },
   { id:"library_event",map:"M03", pos:[10, 25], kind:"보통", name:"국회 사서",
     lines:["어서 오세요! 텃밭에 꽃을 심어볼까요?"] },
+  { id:"nurse_npc", map:"M14", pos:[28, 19], kind:"간호사", name:"센터 간호사",
+    lines:["어서 오세요! 포켓몬을 회복해 드릴게요."] },
 ];
 
 const BATTLES = {
