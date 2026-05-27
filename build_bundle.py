@@ -40,6 +40,11 @@ def compress_js(code):
     compressed = gzip.compress(data, compresslevel=9)
     return base64.b64encode(compressed).decode('ascii')
 
+def safe_json(obj):
+    """HTML <script> 안에 JSON 삽입 시 </script> 조기 종료 방지.
+    </  →  <\/  (유효한 JSON 이스케이프, HTML 파서는 <\/script> 를 무시함)"""
+    return json.dumps(obj).replace('</', '<\\/')
+
 # 새 manifest 구성
 new_manifest = {}
 
@@ -129,9 +134,9 @@ html = f'''<!DOCTYPE html>
   <script>
     {loader_js}
   </script>
-  <script type="__bundler/manifest">{json.dumps(new_manifest, separators=(',',':'))}</script>
+  <script type="__bundler/manifest">{safe_json(new_manifest)}</script>
   <script type="__bundler/ext_resources">[]</script>
-  <script type="__bundler/template">{json.dumps(new_template)}</script>
+  <script type="__bundler/template">{safe_json(new_template)}</script>
 </body>
 </html>'''
 
