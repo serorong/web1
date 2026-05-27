@@ -255,6 +255,18 @@ window.AUDIO = (() => {
   function isMuted() { return muted; }
   function getCurrent() { return currentBGM; }
 
+  // 첫 사용자 인터랙션 시 AudioContext 사전 unlock
+  // (브라우저 Autoplay 정책: 클릭/터치/키 이전에는 AudioContext가 suspended)
+  function unlockOnInteraction() {
+    const ac = getCtx();
+    if (ac && ac.state === 'suspended') {
+      ac.resume().catch(() => {});
+    }
+  }
+  ['click', 'touchstart', 'keydown', 'pointerdown'].forEach(evt =>
+    document.addEventListener(evt, unlockOnInteraction, { once: true, capture: true })
+  );
+
   // 페이지 포커스/블러 처리
   document.addEventListener('visibilitychange', () => {
     const ac = getCtx();

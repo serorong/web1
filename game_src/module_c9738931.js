@@ -90,8 +90,8 @@ function start(){
   applyMinjuEvolution();
   syncUI();
   updateQuest();
-  // 필드 BGM 시작
-  if(window.AUDIO) setTimeout(()=> window.AUDIO.playFieldBGM(), 300);
+  // 필드 BGM 시작 (클릭 핸들러 내부이므로 즉시 실행 — Autoplay 정책 준수)
+  if(window.AUDIO) window.AUDIO.playFieldBGM();
   if(!state.flags.gotMin){
     setTimeout(()=> {
       window.UI.showDialog([
