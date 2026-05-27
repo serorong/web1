@@ -32,6 +32,7 @@ const initialState = () => ({
     warehouseTransformed: false,
     // 엔딩 후 포켓몬 획득 플래그
     gotHeun: false, gotFamily: false, gotSupreme: false, gotSejong: false,
+    gameComplete: false,
   },
   gardenPlants: new Array(16).fill(null), // 국회 도서관 텃밭 (16칸)
   pos: { gx:20, gy:22 }
@@ -146,6 +147,7 @@ function addPokemon(pid, silent){
   syncUI();
   updateQuest();
   save();
+  checkGameComplete();
   return true;
 }
 
@@ -467,6 +469,7 @@ function handleLibraryEvent(){
     setTimeout(()=> window.UI.openGarden(state, (plants)=>{
       state.gardenPlants = plants;
       save();
+      checkGameComplete();
     }), 300);
   });
 }
@@ -666,6 +669,38 @@ function continueAfter(){
   window.UI.toast("자유 탐험 모드! 새로운 포켓몬을 찾아보세요. 🗺️");
 }
 
+function showTitleComplete(){
+  $("ending").classList.remove("show");
+  $("title").classList.remove("hide");
+  if(!$("game-complete-banner")){
+    const banner = document.createElement("div");
+    banner.id = "game-complete-banner";
+    banner.style.cssText = [
+      "background:#ffd23f","color:#2a1a05",
+      "border:4px solid #2a1a05","border-radius:6px",
+      "padding:12px 28px","font-size:clamp(16px,2.8vw,26px)",
+      "margin-bottom:16px","text-align:center",
+      "box-shadow:0 4px 0 #2a1a05","animation:bob 0.6s steps(2) infinite"
+    ].join(";");
+    banner.textContent = "🎉 게임 완료!";
+    const title = $("title");
+    title.insertBefore(banner, title.querySelector("#title-buttons"));
+  }
+}
+
+function checkGameComplete(){
+  if(state.flags.gameComplete) return;
+  if(!state.flags.finalDone) return;
+  if(![5,6,7,8].every(id => state.dex.includes(id))) return;
+  if(state.gardenPlants.filter(x => x !== null).length < 16) return;
+
+  state.flags.gameComplete = true;
+  save();
+  if(window.AUDIO) window.AUDIO.stopBGM();
+  window.UI.toast("🎉 게임 완료!");
+  setTimeout(showTitleComplete, 2000);
+}
+
 // === 타이틀 ===
 function setupTitle(){
   const balls = $("title-balls");
@@ -697,6 +732,7 @@ function boot(){
     opt.onclick = () => { reset(); start(); };
     $("title-buttons").appendChild(opt);
   }
+  if(state.flags.gameComplete) showTitleComplete();
   updateQuest();
 }
 
