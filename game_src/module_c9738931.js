@@ -309,7 +309,7 @@ function handleNPC(npc){
   if(npc.id === "library_event") { handleLibraryEvent(); return; }
   if(npc.id === "nurse_npc"){
     healAll();
-    window.UI.showDialog(["포켓몬이 모두 회복되었어요! ♥"], "센터 간호사");
+    window.UI.showDialog(["다친 포켓몬이 있으면 치료해줄게요. 이제 모두 다 회복되었어요!"], "센터 간호사");
     return;
   }
 

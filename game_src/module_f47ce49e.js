@@ -672,7 +672,8 @@ const NPC_PALETTES = {
   "보스":  { H:"#2a0a0a", f:"#e0b090", e:"#fff5b0", m:"#400404", s:"#a01818", a:"#ffd23f", p:"#300404", n:"#0a0a0a", h:"#2a0a0a" },
   "반장":  { H:"#3a2a18", f:"#fce0c0", e:"#1a0e02", m:"#5a1a05", s:"#7ad77a", a:"#ffd23f", p:"#2a3a5a", n:"#1a1a2a", h:"#3a2a18" },
   "의사":  { H:"#a07050", f:"#fee4c0", e:"#1a0e02", m:"#5a1a05", s:"#ffffff", a:"#ff6b35", p:"#ffffff", n:"#ffffff", h:"#a07050" },
-  "교장":  { H:"#dddddd", f:"#f0c890", e:"#1a0e02", m:"#5a1a05", s:"#5a4a30", a:"#ffd23f", p:"#3a3a30", n:"#1a1a1a", h:"#cccccc" }
+  "교장":  { H:"#dddddd", f:"#f0c890", e:"#1a0e02", m:"#5a1a05", s:"#5a4a30", a:"#ffd23f", p:"#3a3a30", n:"#1a1a1a", h:"#cccccc" },
+  "간호사": { H:"#4a2a10", f:"#fce8d0", e:"#1a0e02", m:"#c0507a", s:"#ffd6e8", a:"#ff4080", p:"#ffffff", n:"#e8e8f0", h:"#4a2a10" }
 };
 
 function drawNPCSheet(ctx, sheet, pal, ox, oy, scale){
@@ -724,6 +725,19 @@ function drawNPC(ctx, kind, x, y, size, facing){
     ctx.fillStyle = "#ff4040";
     ctx.fillRect(x+7*scale, y+0*scale, 2*scale, 1*scale);
     ctx.fillRect(x+6*scale, y+0*scale, 4*scale, 1*scale);
+  }
+  // 간호사 캡 (흰 납작 모자 + 분홍 리본 + 빨간 십자)
+  if(kind==="간호사"){
+    // 흰 캡 본체
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x+3*scale, y-2*scale, 10*scale, 3*scale);
+    // 캡 테두리 (분홍)
+    ctx.fillStyle = "#ff88b0";
+    ctx.fillRect(x+3*scale, y+1*scale, 10*scale, 1*scale);
+    // 십자 표시
+    ctx.fillStyle = "#ff2060";
+    ctx.fillRect(x+7*scale, y-2*scale, 2*scale, 3*scale);
+    ctx.fillRect(x+6*scale, y-1*scale, 4*scale, 1*scale);
   }
 }
 
