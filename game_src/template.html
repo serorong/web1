@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>신의국 민주주의 프로젝트 — 포켓몬 RPG</title>
+  <style>/* 신의국 민주주의 프로젝트 - 픽셀 RPG */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  background: #0a0a12;
+  color: #f5f1e8;
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Helvetica Neue", "Arial", sans-serif;
+  font-weight: 700;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ---------- App stage ---------- */
+#app {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(ellipse at center, #1a1830 0%, #08080f 70%),
+    #08080f;
+}
+#stage {
+  position: relative;
+  width: min(100vw, 100vh * 16 / 9);
+  height: min(100vh, 100vw * 9 / 16);
+  max-width: 1280px; max-height: 720px;
+  background: #000;
+  box-shadow: 0 0 0 4px #2a2440, 0 20px 60px rgba(0,0,0,.6);
+  overflow: hidden;
+  border-radius: 6px;
+}
+@media (max-aspect-ratio: 16/9) {
+  #stage { width: 100vw; height: calc(100vw * 9 / 16); }
+}
+@media (orientation: portrait) {
+  #stage {
+    width: 100vw; height: 100vh; max-width: none; max-height: none;
+    border-radius: 0; box-shadow: none;
+  }
+}
+
+canvas#world {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  image-rendering: pixelated;
+  background: #0d1a08;
+}
+
+/* ---------- HUD ---------- */
+.hud {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+}
+.quest {
+  top: 10px; left: 10px; right: 10px;
+  display: flex; gap: 8px; align-items: stretch;
+  pointer-events: none;
+}
+.quest .badge {
+  background: #ffd23f;
+  color: #2a1a05;
+  border: 3px solid #2a1a05;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: clamp(10px, 1.4vw, 14px);
+  white-space: nowrap;
+  align-self: flex-start;
+  box-shadow: 0 2px 0 #2a1a05;
+}
+.quest .text {
+  flex: 1;
+  background: rgba(20, 18, 35, .92);
+  border: 3px solid #f5f1e8;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #f5f1e8;
+  font-size: clamp(11px, 1.5vw, 15px);
+  line-height: 1.4;
+  box-shadow: 0 2px 0 rgba(0,0,0,.5);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.stats {
+  bottom: 10px; left: 10px;
+  display: flex; gap: 6px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+.stats .chip {
+  background: rgba(20, 18, 35, .92);
+  border: 2px solid #f5f1e8;
+  border-radius: 4px;
+  padding: 5px 9px;
+  font-size: clamp(10px, 1.3vw, 13px);
+  color: #f5f1e8;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+}
+.stats .chip b { color: #ffd23f; }
+
+/* Top-right menu buttons */
+.menu-btns {
+  top: 10px; right: 10px;
+  display: none; /* shown via JS after quest box hides; we keep visible always actually */
+  flex-direction: column; gap: 6px;
+  pointer-events: auto;
+}
+.menu-btns.show { display: flex; }
+.menu-btn {
+  background: #2a2440;
+  color: #f5f1e8;
+  border: 3px solid #f5f1e8;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: clamp(10px, 1.3vw, 13px);
+  cursor: pointer;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+}
+.menu-btn:active { transform: translateY(1px); }
+
+/* ---------- Touch D-pad ---------- */
+.touch {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  display: none;
+}
+.touch.show { display: block; }
+.dpad {
+  position: absolute;
+  bottom: 16px; left: 16px;
+  width: clamp(120px, 22vw, 180px);
+  height: clamp(120px, 22vw, 180px);
+  pointer-events: auto;
+}
+.dpad button {
+  position: absolute;
+  background: rgba(20,18,35,.7);
+  border: 3px solid #f5f1e8;
+  color: #f5f1e8;
+  font-size: 20px;
+  font-family: inherit;
+  border-radius: 8px;
+  width: 33.33%; height: 33.33%;
+  cursor: pointer;
+  touch-action: none;
+}
+.dpad button:active { background: #ffd23f; color: #2a1a05; }
+.dpad .up    { top: 0; left: 33.33%; }
+.dpad .left  { top: 33.33%; left: 0; }
+.dpad .right { top: 33.33%; right: 0; }
+.dpad .down  { bottom: 0; left: 33.33%; }
+.dpad .ctr   { top: 33.33%; left: 33.33%; border-radius: 50%; background: rgba(255,210,63,.2); }
+
+.action-btn {
+  position: absolute;
+  bottom: 30px; right: 16px;
+  width: clamp(70px, 12vw, 100px);
+  height: clamp(70px, 12vw, 100px);
+  border-radius: 50%;
+  background: #ff6b35;
+  color: #fff;
+  border: 4px solid #f5f1e8;
+  font-family: inherit;
+  font-size: clamp(12px, 1.6vw, 16px);
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,.4);
+  text-shadow: 1px 1px 0 #000;
+}
+.action-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+
+/* ---------- Dialog ---------- */
+.dialog-layer {
+  position: absolute; inset: 0;
+  display: none;
+  z-index: 10;
+  pointer-events: none;
+}
+.dialog-layer.show { display: block; }
+.dialog-box {
+  position: absolute;
+  left: 5%; right: 5%; bottom: 12%;
+  background: #fffaf0;
+  color: #2a1a05;
+  border: 4px solid #2a1a05;
+  border-radius: 6px;
+  padding: 14px 18px 22px;
+  pointer-events: auto;
+  box-shadow: 0 4px 0 rgba(0,0,0,.4), inset 0 0 0 2px #fffaf0, inset 0 0 0 4px #ffd23f;
+  font-size: clamp(13px, 1.7vw, 17px);
+  line-height: 1.55;
+  min-height: 90px;
+}
+.dialog-box .name {
+  display: inline-block;
+  background: #2a1a05; color: #ffd23f;
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: clamp(11px, 1.5vw, 14px);
+  margin-bottom: 8px;
+  white-space: nowrap;
+}
+.dialog-box .text { white-space: pre-wrap; }
+.dialog-box .cursor {
+  position: absolute; right: 14px; bottom: 8px;
+  color: #2a1a05;
+  animation: blink 0.6s steps(2) infinite;
+}
+@keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+
+/* ---------- Modal (dex/menu/quiz/battle) ---------- */
+.modal {
+  position: absolute; inset: 0;
+  background: rgba(8, 8, 15, .85);
+  display: none;
+  z-index: 20;
+  pointer-events: auto;
+  overflow: auto;
+  padding: 20px;
+}
+.modal.show { display: flex; align-items: center; justify-content: center; }
+.modal .panel {
+  background: #fffaf0;
+  color: #2a1a05;
+  border: 4px solid #2a1a05;
+  border-radius: 6px;
+  padding: 18px;
+  max-width: 92%;
+  max-height: 92%;
+  overflow: auto;
+  box-shadow: 0 6px 0 rgba(0,0,0,.4);
+  width: 720px;
+}
+.modal h2 {
+  font-size: clamp(16px, 2.2vw, 22px);
+  margin-bottom: 10px;
+  background: #2a1a05; color: #ffd23f;
+  padding: 6px 12px; display: inline-block; border-radius: 3px;
+}
+.modal .close {
+  float: right;
+  background: #ff6b35;
+  color: #fff;
+  border: 3px solid #2a1a05;
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* 도감 탭 */
+.dex-tabs {
+  display: flex; gap: 6px;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #2a1a05;
+  padding-bottom: 0;
+}
+.dex-tab {
+  background: #f0e8d8;
+  color: #5a4a30;
+  border: 3px solid #2a1a05;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: clamp(13px, 1.7vw, 16px);
+  cursor: pointer;
+  margin-bottom: -3px;
+  white-space: nowrap;
+}
+.dex-tab.active {
+  background: #ffd23f;
+  color: #2a1a05;
+}
+.dex-tab-content { padding-top: 8px; }
+
+/* 꽃 도감 */
+.flower-section { margin-bottom: 18px; }
+.flower-section h3 {
+  font-size: clamp(13px, 1.7vw, 16px);
+  background: #2a1a05; color: #fffaf0;
+  padding: 4px 12px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.flower-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.flower-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: #f0e8d8;
+  border: 2px solid #2a1a05;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: clamp(12px, 1.5vw, 14px);
+  line-height: 1.4;
+}
+.flower-row .icon {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border: 2px solid #2a1a05;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  background: #fff;
+}
+.flower-row.locked {
+  filter: grayscale(1) opacity(0.5);
+}
+.flower-row .num {
+  font-weight: 700;
+  color: #5a4a30;
+  margin-right: 4px;
+}
+.flower-row .court  { background: #c8a0ff; }
+.flower-row .cong   { background: #5cb3ff; color:#fff; }
+.flower-row .admin  { background: #ff8a3c; color:#fff; }
+.dex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.dex-cell {
+  background: #f0e8d8;
+  border: 3px solid #2a1a05;
+  border-radius: 4px;
+  padding: 6px;
+  text-align: center;
+  font-size: clamp(10px, 1.3vw, 13px);
+  cursor: pointer;
+  position: relative;
+}
+.dex-cell canvas { width: 56px; height: 56px; image-rendering: pixelated; display: block; margin: 0 auto 4px; }
+.dex-cell.locked { filter: grayscale(1) brightness(.4); }
+.dex-cell .no { position: absolute; top: 2px; left: 4px; font-size: 9px; color: #2a1a05; }
+
+/* ---------- Battle ---------- */
+.battle {
+  position: absolute; inset: 0;
+  display: none;
+  z-index: 15;
+  background: linear-gradient(180deg, #87ceeb 0%, #b8e0a6 50%, #6fb55a 100%);
+  pointer-events: auto;
+  overflow: hidden;
+}
+.battle.show { display: block; }
+.battle .scene {
+  position: absolute; inset: 0;
+}
+.battle .enemy-pad, .battle .player-pad {
+  position: absolute;
+  width: clamp(120px, 22vw, 220px);
+  height: clamp(40px, 8vw, 70px);
+  background: radial-gradient(ellipse at center, rgba(40,30,20,.4) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.battle .enemy-pad { top: 22%; right: 8%; }
+.battle .player-pad { bottom: 28%; left: 8%; }
+.battle .enemy-sprite, .battle .player-sprite {
+  position: absolute;
+  image-rendering: pixelated;
+}
+.battle .enemy-sprite {
+  top: 10%; right: 10%;
+  width: clamp(120px, 22vw, 220px); height: clamp(120px, 22vw, 220px);
+}
+.battle .player-sprite {
+  bottom: 18%; left: 6%;
+  width: clamp(140px, 26vw, 260px); height: clamp(140px, 26vw, 260px);
+}
+
+.battle .name-card {
+  position: absolute;
+  background: #fffaf0;
+  color: #2a1a05;
+  border: 3px solid #2a1a05;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: clamp(11px, 1.5vw, 15px);
+  box-shadow: 0 3px 0 rgba(0,0,0,.4);
+  min-width: 160px;
+}
+.battle .enemy-card { top: 8%; left: 8%; }
+.battle .player-card { bottom: 38%; right: 6%; }
+.battle .name-card .hp-bar {
+  height: 8px; background: #2a1a05; border-radius: 2px; overflow: hidden;
+  margin-top: 4px;
+}
+.battle .name-card .hp-fill {
+  height: 100%; background: #5cb85c; transition: width .5s, background .3s;
+}
+.battle .name-card .hp-fill.mid { background: #ffd23f; }
+.battle .name-card .hp-fill.low { background: #ff4040; }
+
+.battle .menu {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 28%;
+  background: #fffaf0;
+  border-top: 4px solid #2a1a05;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+.battle .menu .msg {
+  background: #f0e8d8;
+  border: 3px solid #2a1a05;
+  border-radius: 4px;
+  padding: 10px;
+  color: #2a1a05;
+  font-size: clamp(12px, 1.6vw, 16px);
+  line-height: 1.4;
+  overflow: auto;
+}
+.battle .menu .actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.battle .menu .actions button {
+  background: #ffd23f;
+  color: #2a1a05;
+  border: 3px solid #2a1a05;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: clamp(10px, 1.3vw, 14px);
+  cursor: pointer;
+  padding: 6px;
+  text-shadow: 1px 1px 0 rgba(255,255,255,.3);
+}
+.battle .menu .actions button:hover { background: #ff6b35; color: #fff; }
+.battle .menu .actions button:disabled { background: #b0a890; color: #5a5a5a; cursor: not-allowed; }
+.battle .menu .actions button.back { grid-column: span 2; background: #6c757d; color: #fff; }
+
+/* ---------- Quiz ---------- */
+.quiz .panel { width: 600px; }
+.quiz .q { font-size: clamp(14px, 1.9vw, 18px); margin: 12px 0; line-height: 1.5; }
+.quiz .options { display: grid; gap: 8px; }
+.quiz .option {
+  background: #ffd23f; color: #2a1a05;
+  border: 3px solid #2a1a05;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: clamp(12px, 1.6vw, 16px);
+  cursor: pointer; text-align: left;
+}
+.quiz .option:hover { background: #ff6b35; color: #fff; }
+.quiz .option.correct { background: #5cb85c; color: #fff; }
+.quiz .option.wrong { background: #d9534f; color: #fff; }
+
+/* ---------- Title screen ---------- */
+.title-screen {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #1a1830 0%, #08080f 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 30;
+  text-align: center;
+  padding: 20px;
+  gap: 8px;
+}
+.title-screen .row { display: flex; flex-wrap: wrap; justify-content: center; }
+.title-screen.hide { display: none; }
+.title-screen h1 {
+  font-size: clamp(22px, 4.5vw, 42px);
+  color: #ffd23f;
+  text-shadow: 4px 4px 0 #2a1a05, -1px -1px 0 #2a1a05, 1px -1px 0 #2a1a05, -1px 1px 0 #2a1a05;
+  margin-bottom: 30px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.title-screen h2 {
+  font-size: clamp(13px, 2vw, 18px);
+  color: #f5f1e8;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+.title-screen .pokeballs {
+  display: flex; gap: 6px; margin-bottom: 30px;
+}
+.title-screen .pokeballs canvas { width: 32px; height: 32px; image-rendering: pixelated; }
+.title-screen .hint {
+  margin-top: 18px;
+  color: #b8b0a0;
+  font-size: clamp(11px, 1.5vw, 14px);
+  animation: blink 1s steps(2) infinite;
+}
+.title-screen .start-btn {
+  background: #ff6b35;
+  color: #fff;
+  border: 4px solid #fffaf0;
+  border-radius: 6px;
+  padding: 14px 36px;
+  font-family: inherit;
+  font-size: clamp(14px, 2vw, 20px);
+  cursor: pointer;
+  text-shadow: 2px 2px 0 #2a1a05;
+  box-shadow: 0 4px 0 #2a1a05;
+  white-space: nowrap;
+  min-width: 180px;
+  margin: 6px 4px;
+}
+.title-screen .start-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2a1a05; }
+.title-screen .meta {
+  margin-top: 20px;
+  font-size: clamp(10px, 1.3vw, 12px);
+  color: #8a8278;
+}
+
+/* ---------- Toast (transient message) ---------- */
+.toast {
+  position: absolute;
+  top: 80px; left: 50%;
+  transform: translateX(-50%);
+  background: #2a1a05;
+  color: #ffd23f;
+  border: 3px solid #ffd23f;
+  border-radius: 4px;
+  padding: 10px 18px;
+  font-size: clamp(12px, 1.6vw, 16px);
+  z-index: 25;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s, transform .25s;
+  text-shadow: 1px 1px 0 #000;
+  box-shadow: 0 4px 0 rgba(0,0,0,.4);
+  max-width: 80%; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Final ending */
+.ending {
+  position: absolute; inset: 0;
+  display: none;
+  z-index: 40;
+  background: linear-gradient(180deg, #2a1a05 0%, #08080f 100%);
+  pointer-events: auto;
+  align-items: center; justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 24px;
+  overflow: auto;
+}
+.ending.show { display: flex; }
+.ending h1 {
+  font-size: clamp(20px, 3.5vw, 36px);
+  color: #ffd23f;
+  text-shadow: 3px 3px 0 #2a1a05;
+  margin-bottom: 14px;
+}
+.ending-stage {
+  position: relative;
+  width: clamp(280px, 60vw, 520px);
+  height: clamp(140px, 28vw, 200px);
+  margin: 12px auto;
+  background: linear-gradient(180deg, #87ceeb 0%, #b8e0a6 65%, #6fb55a 100%);
+  border: 4px solid #ffd23f;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ending-char {
+  position: absolute;
+  bottom: 14px;
+  width: clamp(48px, 9vw, 80px);
+  height: clamp(48px, 9vw, 80px);
+  image-rendering: pixelated;
+}
+.ending-char.hyeon {
+  left: 38%;
+}
+.ending-char.principal {
+  left: 100%;
+  animation: principalWalkIn 2.4s steps(8) 0.6s forwards;
+}
+@keyframes principalWalkIn {
+  0%   { left: 100%; transform: translateX(0); }
+  100% { left: 56%; transform: translateX(0); }
+}
+.ending-char.bob {
+  animation: charBob 0.4s steps(2) infinite;
+}
+@keyframes charBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.ending-speech {
+  background: #fffaf0;
+  color: #2a1a05;
+  border: 3px solid #2a1a05;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 8px auto 6px;
+  max-width: 540px;
+  font-size: clamp(13px, 1.8vw, 16px);
+  line-height: 1.5;
+  min-height: 60px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 0 rgba(0,0,0,.4);
+  text-align: left;
+}
+.ending-speech .name {
+  display: inline-block;
+  background: #2a1a05; color:#ffd23f;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  font-size: clamp(11px, 1.5vw, 14px);
+  white-space: nowrap;
+}
+.ending .credits {
+  background: rgba(255,250,240,.95);
+  color: #2a1a05;
+  padding: 16px 22px;
+  border-radius: 6px;
+  border: 4px solid #ffd23f;
+  margin: 14px 0;
+  font-size: clamp(12px, 1.6vw, 16px);
+  line-height: 1.7;
+  max-width: 600px;
+}
+.ending .party {
+  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+  max-width: 600px;
+  margin: 14px 0;
+}
+.ending .party canvas { width: 48px; height: 48px; image-rendering: pixelated; }
+.ending button {
+  background: #ff6b35; color: #fff;
+  border: 3px solid #fffaf0;
+  padding: 10px 24px;
+  font-family: inherit;
+  font-size: clamp(12px, 1.6vw, 16px);
+  cursor: pointer; border-radius: 4px;
+  margin: 6px;
+}
+
+/* Korean line-break helper */
+.kbk { word-break: keep-all; }
+
+/* ── 텃밭 ── */
+.garden-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.garden-cell {
+  background: #c8a870;
+  border: 3px solid #7a5a30;
+  border-radius: 6px;
+  min-height: 80px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 6px;
+  position: relative;
+  transition: background 0.2s;
+  cursor: pointer;
+  text-align: center;
+  font-size: 11px;
+}
+.garden-cell:hover:not(.planted) { background: #b8985a; }
+.garden-cell.planted { background: #a8d080; }
+.garden-remove-btn {
+  position: absolute; top: 2px; right: 2px;
+  background: rgba(200,60,40,0.8);
+  color: white; border: none; border-radius: 3px;
+  width: 16px; height: 16px;
+  font-size: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.garden-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.garden-pick-btn {
+  background: #ffd23f;
+  color: #2a1a05;
+  border: 2px solid #2a1a05;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  max-width: 340px;
+}
+.garden-pick-btn:hover { background: #ff6b35; color: #fff; }
+
+</style>
+</head>
+<body>
+  
+  <div id="app">
+    <div id="stage">
+      <canvas id="world" width="320" height="180"></canvas>
+
+      <!-- HUD: 현재 목표 -->
+      <div class="hud quest" id="quest">
+        <div class="badge">현재 목표</div>
+        <div class="text" id="quest-text">신의국에 오신 것을 환영합니다.</div>
+      </div>
+
+      <!-- HUD: 상태 칩 -->
+      <div class="hud stats" id="stats">
+        <div class="chip">팀 <b id="dex-count">0</b>/9</div>
+        <div class="chip">국이 Lv<b id="kook-lv">1</b></div>
+        <div class="chip">행이 Lv<b id="haeng-lv">1</b></div>
+        <div class="chip">법이 Lv<b id="beob-lv">1</b></div>
+        <div class="chip">배틀 <b id="bcount">0</b>/7</div>
+        <div class="chip">꽃 <b id="flower-count">0</b>/16</div>
+      </div>
+
+      <!-- 우상단 메뉴 버튼 -->
+      <div class="hud menu-btns show" id="menu-btns">
+        <button class="menu-btn" data-act="dex">📖 도감</button>
+        <button class="menu-btn" data-act="save">💾 저장</button>
+        <button class="menu-btn" data-act="reset">↺ 처음부터</button>
+        <button class="menu-btn" id="sound-btn" title="음악 켜기/끄기">🔊 음악</button>
+      </div>
+
+      <!-- 터치 D-pad (모바일) -->
+      <div class="touch" id="touch">
+        <div class="dpad">
+          <button class="up" data-dir="up">▲</button>
+          <button class="left" data-dir="left">◀</button>
+          <button class="ctr" data-dir="center"></button>
+          <button class="right" data-dir="right">▶</button>
+          <button class="down" data-dir="down">▼</button>
+        </div>
+        <button class="action-btn" id="action-btn">A</button>
+      </div>
+
+      <!-- 대화창 -->
+      <div class="dialog-layer" id="dialog">
+        <div class="dialog-box">
+          <div class="name" id="d-name">NPC</div>
+          <div class="text" id="d-text"></div>
+          <div class="cursor">▼</div>
+        </div>
+      </div>
+
+      <!-- 토스트 -->
+      <div class="toast" id="toast">메시지</div>
+
+      <!-- 도감 모달 -->
+      <div class="modal" id="dex-modal">
+        <div class="panel">
+          <button class="close" data-close="">닫기</button>
+          <div class="dex-tabs">
+            <button class="dex-tab active" data-tab="pkmn">📖 포켓몬 팀</button>
+            <button class="dex-tab" data-tab="flower">🌸 꽃 도감</button>
+          </div>
+          <div class="dex-tab-content" data-tab="pkmn">
+            <p style="margin-top:6px; font-size:13px; color:#5a4a30;">팀 구성: <span id="dex-collected">0</span>/9 · 견제 배틀: <span id="center-cells">0</span>/7</p>
+            <div class="dex-grid" id="dex-grid"></div>
+          </div>
+          <div class="dex-tab-content" data-tab="flower" style="display:none;">
+            <p style="margin-top:6px; font-size:13px; color:#5a4a30;">꽃 수집: <span id="flower-collected">0</span>/16 (법원 <span id="fc-court">0</span>/6 · 국회 <span id="fc-cong">0</span>/3 · 행정부 <span id="fc-admin">0</span>/7)</p>
+            <div id="flower-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 퀴즈 모달 -->
+      <div class="modal quiz" id="quiz-modal">
+        <div class="panel">
+          <h2 id="quiz-title">스킬 훈련 퀴즈</h2>
+          <div class="q" id="quiz-q"></div>
+          <div class="options" id="quiz-opts"></div>
+          <div style="margin-top:12px; font-size:12px; color:#5a4a30;" id="quiz-meta"></div>
+        </div>
+      </div>
+
+      <!-- 최종 퀴즈 모달 (드래그&드롭) -->
+      <div class="modal quiz" id="final-quiz-modal">
+        <div class="panel" style="width:720px;">
+          <h2>🏛️ 최종 퀴즈 — 삼권 견제 다이어그램</h2>
+          <p style="margin-top:6px; font-size:13px; color:#5a4a30;">교과서 삼권분립 다이어그램의 빈칸 6곳을 채우세요.</p>
+          <div id="final-quiz-body"></div>
+        </div>
+      </div>
+
+
+      <!-- 세종청사 꽃 도감 퀴즈 모달 -->
+      <div class="modal quiz" id="sejong-quiz-modal">
+        <div class="panel" style="width:720px; max-height:90vh; overflow:auto;">
+          <h2>🏛️ 정부세종청사 — 꽃 도감 퀴즈</h2>
+          <p style="margin-top:6px; font-size:12px; color:#5a4a30;">꽃 도감 설명에서 핵심 단어가 빠졌어요! 16문제를 모두 맞추면 청사이를 획득해요.</p>
+          <div id="sejong-quiz-body" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <!-- 국회 도서관 텃밭 모달 -->
+      <div class="modal" id="garden-modal">
+        <div class="panel" style="width:720px; max-height:90vh; overflow:auto;">
+          <button class="close" data-close="">닫기</button>
+          <h2>🌻 국회 도서관 텃밭</h2>
+          <p style="margin-top:6px; font-size:12px; color:#5a4a30;">모은 꽃들을 텃밭에 심어보세요! 16칸 중 빈 칸을 눌러 꽃을 선택하세요.</p>
+          <div id="garden-grid" class="garden-grid" style="margin-top:12px;"></div>
+          <div id="garden-picker" class="garden-picker" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <!-- 배틀 화면 -->
+      <div class="battle" id="battle">
+        <div class="scene">
+          <div class="name-card enemy-card">
+            <div><b id="b-enemy-name">??</b></div>
+            <div class="hp-bar"><div class="hp-fill" id="b-enemy-hp"></div></div>
+          </div>
+          <div class="name-card player-card">
+            <div><b id="b-player-name">??</b></div>
+            <div class="hp-bar"><div class="hp-fill" id="b-player-hp"></div></div>
+          </div>
+          <div class="enemy-pad"></div>
+          <canvas class="enemy-sprite" id="b-enemy-canvas" width="64" height="64"></canvas>
+          <div class="player-pad"></div>
+          <canvas class="player-sprite" id="b-player-canvas" width="64" height="64"></canvas>
+        </div>
+        <div class="menu">
+          <div class="msg" id="b-msg">야생의 포켓몬이 나타났다!</div>
+          <div class="actions" id="b-actions"></div>
+        </div>
+      </div>
+
+      <!-- 엔딩 -->
+      <div class="ending" id="ending">
+        <h1>🎉 신의국 민주적 재건 완료!</h1>
+        <div class="ending-stage">
+          <canvas class="ending-char hyeon bob" id="end-hyeon" width="64" height="64"></canvas>
+          <canvas class="ending-char principal bob" id="end-principal" width="64" height="64"></canvas>
+        </div>
+        <div class="ending-speech" id="ending-speech">
+          <div class="name" id="end-name">정현중</div>
+          <div id="end-text"></div>
+        </div>
+        <div class="credits" id="ending-credits"></div>
+        <div class="party" id="ending-party"></div>
+        <div>
+          <button onclick="Game.continue()">계속하기</button>
+          <button onclick="Game.reset()">처음부터 다시</button>
+        </div>
+      </div>
+
+      <!-- 타이틀 -->
+      <div class="title-screen" id="title">
+        <div class="pokeballs" id="title-balls"></div>
+        <h1 class="kbk">신의국 민주주의 프로젝트</h1>
+        <div class="row" id="title-buttons">
+          <button class="start-btn" id="start-btn">▶ 게임 시작</button>
+        </div>
+        <div class="hint">방향키(↑↓←→)로 이동 · 스페이스/엔터로 상호작용</div>
+        <div class="meta">신의반 이세린 선생님 · 초등 6학년 사회 · 2022 개정</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 데이터 & 엔진 -->
+  <script src="063ad6e0-138a-4fbe-b087-f191f3728068"></script>
+  <script src="f47ce49e-66ce-4ac7-a1f5-4bbed4b76b3d"></script>
+  <script src="6cc4d545-5c95-460e-bd5e-561eac36bd14"></script>
+  <script src="4744a30d-61ce-4df5-8b00-13f0e3b137a3"></script>
+  <script src="d87d5949-cc0a-457b-8088-45ce48f0fa7d"></script>
+  <script src="14e3bafe-286f-4f66-9af1-6dabcacc149a"></script>
+  <script src="edb567c9-0f69-4b49-af2b-4f7031060c92"></script>
+  <script src="c9738931-9db2-4e86-a318-a0a05e46e597"></script>
+
+
+</body></html>
