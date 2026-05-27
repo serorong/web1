@@ -12,7 +12,7 @@ function open(battleId, onDone){
   const G = window.Game.getState();
   const alive = G.dex.filter(pid => window.Game.getHP(pid) > 0);
   if(alive.length === 0){
-    window.UI.toast("모든 포켓몬이 지쳐있어요! 포켓몬 센터로 가서 회복하세요.");
+    window.UI.toast("포켓몬이 지쳤어요!");
     if(onDone) onDone(false);
     return;
   }
@@ -187,8 +187,8 @@ function useSkill(skill, owner, level){
         const alive = G.dex.filter(id => window.Game.getHP(id) > 0);
         if(alive.length === 0){
           setTimeout(()=> {
-            $("b-msg").textContent = "모든 포켓몬이 지쳤어요! 센터에서 회복해야 해요…";
-            setActions([{ label:"센터로", onClick: ()=> close(false) }]);
+            $("b-msg").textContent = "모든 포켓몬이 지쳤어요!";
+            setActions([{ label:"나가기", onClick: ()=> { window.Game.healAll(); close(false); } }]);
             busy = false;
           }, 900);
         } else {

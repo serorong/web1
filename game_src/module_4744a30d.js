@@ -136,11 +136,11 @@ const GARDEN_BORDER = [
   [6,26],[14,26]                                        // 좌우 중간 각 1개
 ];
 
-// 포켓몬 센터 내 포켓몬 표시용 슬롯 (센터: cx=28, cy=20, 내부 x:25-31, y:18-21)
+// 신의국 교실(M13) 내 수집된 포켓몬 표시용 슬롯 (building(8,6,7,5) → 내부 x:6-10, y:5-7)
 const CENTER_SLOTS = [
-  [26,19],[27,19],[29,19],[30,19],
-  [26,20],[27,20],[29,20],[30,20],
-  [25,19],[31,19]
+  [6,5],[7,5],[9,5],[10,5],
+  [6,6],[9,6],[10,6],
+  [6,7],[7,7]
 ];
 
 function render(){
@@ -166,7 +166,7 @@ function render(){
 
   const G = window.Game ? window.Game.getState() : {flags:{}, dex:[]};
 
-  // ── 포켓몬 센터 내부에 수집된 포켓몬 표시 ──
+  // ── 신의국 교실(M13) 내부에 수집된 포켓몬 표시 ──
   if(G.dex && G.dex.length > 0){
     G.dex.forEach((pid, i) => {
       if(i >= CENTER_SLOTS.length) return;

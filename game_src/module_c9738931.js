@@ -58,6 +58,18 @@ function load(){
           parsed.gardenPlants.forEach((v,i)=>{ if(i<16) state.gardenPlants[i]=v; });
         }
       }
+      // 기존 저장 데이터 마이그레이션: 스킬 자동 습득
+      (state.dex || []).forEach(pid => {
+        const _p = window.DATA.POKEDEX.find(x => x.id === pid);
+        if(_p && _p.skills){
+          const _maxLv = Math.max(...Object.keys(_p.skills).map(Number));
+          state.skills[_p.name] = Math.max(state.skills[_p.name]||0, _maxLv);
+          Object.values(_p.skills).forEach(sl => {
+            state.skillsKnown[sl.replace(/\(.*\)/,"").trim()] = true;
+          });
+          if(_maxLv > 0) state.flags.firstTrain = true;
+        }
+      });
       return true;
     }
   } catch(e){}
@@ -116,6 +128,16 @@ function addPokemon(pid, silent){
   const p = window.DATA.POKEDEX.find(x=>x.id===pid);
   state.hp = state.hp || {};
   state.hp[pid] = p ? p.hp : 20;
+  // 포켓몬을 얻는 즉시 모든 스킬 자동 습득
+  const _p = window.DATA.POKEDEX.find(x => x.id === pid);
+  if(_p && _p.skills){
+    const _maxLv = Math.max(...Object.keys(_p.skills).map(Number));
+    state.skills[_p.name] = Math.max(state.skills[_p.name]||0, _maxLv);
+    Object.values(_p.skills).forEach(sl => {
+      state.skillsKnown[sl.replace(/\(.*\)/,"").trim()] = true;
+    });
+    state.flags.firstTrain = true;
+  }
   if(!silent){
     window.UI.toast(`✨ ${p ? p.name : '?'}을(를) 도감에 등록!`);
     if(window.AUDIO) window.AUDIO.playGetPokemonSFX();
@@ -231,7 +253,6 @@ function onInteract(){
 
 function shouldShowNPC(npc){
   if(npc.id==="hyeon_npc")     return state.flags.warehouseTransformed;
-  if(npc.id==="nurse")          return state.flags.bossBeaten;
   if(npc.id==="principal")      return false;
   if(npc.id==="boss_lee")       return !state.flags.bossBeaten;
   // 엔딩 후 이벤트 NPC
@@ -257,20 +278,6 @@ function handleNPC(npc){
         window.UI.toast("민쥬가 있어야 도전할 수 있어요!"); return;
       }
       startBattle(npc.battle);
-    });
-    return;
-  }
-  if(npc.id === "nurse"){
-    if(state.flags.finalDone){
-      window.UI.showDialog([
-        "잘했어! 최고야! 🎉",
-        "신의국의 삼권분립을 완벽하게 이해했구나!",
-        "앞으로도 민주주의를 지키는 멋진 시민이 되어줘!"
-      ], npc.name);
-      return;
-    }
-    window.UI.showDialog(npc.lines, npc.name, () => {
-      window.QUIZ.openCenterMenu(()=> { updateQuest(); });
     });
     return;
   }
@@ -514,8 +521,7 @@ function onBattleWin(battleId, def){
       window.UI.showDialog([
         "이세린 독재자가 격퇴되었다!",
         "✨ 민쥬가 진화했어요! → [착한 이세린 선생님]",
-        "포켓몬 센터가 복구되었어요!",
-        "센터에서 견제 스킬을 훈련받고, 국이·행이·법이를 만나세요!"
+        "국이·행이·법이를 만나면 스킬이 즉시 준비돼요!"
       ], "신의국 안내자");
     }, 300);
     return;

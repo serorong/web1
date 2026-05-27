@@ -70,7 +70,6 @@ const MAPS = [
   { id:"M11", name:"중앙선거관리위원회",      center:[44, 6],  signPos:[47, 9] },
   { id:"M12", name:"버려진 투표함",           center:[52, 14], signPos:[54, 17] },
   { id:"M13", name:"신의국 교실",             center:[8,  6],  signPos:[5, 10] },
-  { id:"M14", name:"포켓몬 센터",             center:[28, 20], signPos:[28, 25] },
   { id:"M15", name:"숨겨진 창고",             center:[2,  20], signPos:[2, 24] },
 ];
 
@@ -92,8 +91,6 @@ const NPCS = [
     lines:["(투표함이 슬프게 놓여있다…)","투표하지 않으면 우리의 주권은 사라져요.","꼭 투표에 참여하세요."] },
   { id:"hyeon_npc", map:"M15", pos:[2,20], kind:"반장", name:"정현중 (반장)",
     lines:["어? 신의반 친구들!","여기는 새로 생긴 신의국 교실이야!","마지막으로 삼권분립 다이어그램의 빈칸을 채워보자.","그러면 신의국이 진짜 민주 국가가 될 거야!"] },
-  { id:"nurse", map:"M14", pos:[28,23], kind:"의사", name:"센터 간호사",
-    lines:["어서 오세요, 신의반 친구들!","여기서 견제 스킬을 훈련받을 수 있어요.","퀴즈를 풀고 [예산심의 · 국정감사 · 거부권 · 대법원장임명 · 법 심사 요청] 등의 스킬을 배워보세요!"] },
   { id:"heun_event",   map:"M08", pos:[20, 35], kind:"보통", name:"헌이",
     lines:["(헌법재판소 깊은 곳에서 붉은 빛이 난다…)"] },
   { id:"family_event", map:"M09", pos:[8,  33], kind:"보통", name:"가정이",
@@ -124,7 +121,7 @@ const BATTLES = {
     intro:"행정부가 예산을 이상한 곳에 썼다는 소문! 진실이 필요해요.",
     concept:"국회는 [국정감사]를 통해 행정부를 견제한다.",
     victory:"국정감사 성공! 잘못된 일이 바로잡혔어요!",
-    failHint:"센터에서 국이 Lv3 [국정감사] 스킬을 배워오세요!"
+    failHint:"국이의 [국정감사] 스킬을 사용하세요!"
   },
   B02: {
     id:"B02", name:"예산심의 (국회 → 행정)",
@@ -133,7 +130,7 @@ const BATTLES = {
     intro:"행정부가 불투명한 예산 항목을 슬쩍 끼워 넣으려 한다!",
     concept:"국회는 [예산안 심의]로 행정부의 나라살림을 점검한다.",
     victory:"예산안이 깔끔하게 정리되었어요!",
-    failHint:"센터에서 국이 Lv2 [예산심의] 스킬을 배워오세요!"
+    failHint:"국이의 [예산심의] 스킬을 사용하세요!"
   },
   B03: {
     id:"B03", name:"법률안 거부권 (행정 → 국회)",
@@ -142,7 +139,7 @@ const BATTLES = {
     intro:"국회가 학생 권리를 침해하는 법률안을 통과시켰다!",
     concept:"대통령(행정부)은 [법률안 거부권]으로 국회를 견제한다.",
     victory:"법률안이 다시 국회로 돌아갔어요!",
-    failHint:"센터에서 행이 Lv2 [법률안거부권] 스킬을 배워오세요!"
+    failHint:"행이의 [법률안거부권] 스킬을 사용하세요!"
   },
   B04: {
     id:"B04", name:"대법원장 임명 (행정 → 법원)",
@@ -151,7 +148,7 @@ const BATTLES = {
     intro:"대법원장 자리가 비었다! 임명이 필요하다.",
     concept:"대통령(행정부)은 [대법원장을 임명]한다 (국회 동의 필요).",
     victory:"새 대법원장이 임명되었어요! 법원이 정상화됩니다.",
-    failHint:"센터에서 행이 Lv3 [대법원장임명] 스킬을 배워오세요!"
+    failHint:"행이의 [대법원장임명] 스킬을 사용하세요!"
   },
   B05: {
     id:"B05", name:"법 심사 요청 (법원 → 행정)",
@@ -160,7 +157,7 @@ const BATTLES = {
     intro:"감염된 행이가 법에 어긋나는 명령을 내렸다!",
     concept:"법원은 [법 심사 요청]으로 행정부의 명령·규칙을 견제한다.",
     victory:"감염된 행이가 치유되었어요!",
-    failHint:"센터에서 법이 Lv2 [법 심사 요청] 스킬을 배워오세요! 법이는 대법원 풀숲에 있어요."
+    failHint:"법이의 [법 심사 요청] 스킬을 사용하세요!"
   },
   B06: {
     id:"B06", name:"법 심사 요청 (법원 → 국회)",
@@ -169,7 +166,7 @@ const BATTLES = {
     intro:"감염된 국이가 헌법에 어긋나는 법률을 만들었다!",
     concept:"법원은 [법 심사 요청]으로 국회의 법률을 헌법재판소에 견제 요청한다.",
     victory:"감염된 국이가 치유되었어요!",
-    failHint:"센터에서 법이 Lv2 [법 심사 요청] 스킬을 배워오세요! 법이는 대법원 풀숲에 있어요."
+    failHint:"법이의 [법 심사 요청] 스킬을 사용하세요!"
   },
   B07: {
     id:"B07", name:"대법원장 임명 동의권 (국회 → 행정)",
@@ -178,7 +175,7 @@ const BATTLES = {
     intro:"대통령이 자신과 친한 사람을 대법원장으로 임명하려 한다!",
     concept:"국회는 대통령이 대법원장을 임명할 때 [동의권]을 행사한다.",
     victory:"국회의 동의 없이는 임명 불가! 부적절한 임명이 막혔어요!",
-    failHint:"센터에서 국이 Lv4 [대법원장동의권] 스킬을 배워오세요!"
+    failHint:"국이의 [대법원장동의권] 스킬을 사용하세요!"
   },
 };
 
@@ -266,15 +263,13 @@ const SEJONG_QUIZ = [
 ];
 
 const QUEST_STEPS = [
-  { id:"start",      text:"입구 풀숲에서 민쥬를 만나세요!", check:(s)=>!s.flags.gotMin },
-  { id:"boss",       text:"민쥬와 함께 이세린 독재자를 격퇴하세요!", check:(s)=>s.flags.gotMin && !s.flags.bossBeaten },
-  { id:"meet3",      text:"국이(국회의사당)·행이(정부서울청사)·법이(대법원 풀숲)를 만나세요!", check:(s)=>s.flags.bossBeaten && !(s.dex.includes(2)&&s.dex.includes(3)&&s.dex.includes(4)) },
-  { id:"tryBattle",  text:"세 포켓몬을 모두 만났어요! 이제 감염된 포켓몬(보라 글로우)에 도전해보세요!", check:(s)=>s.dex.includes(2)&&s.dex.includes(3)&&s.dex.includes(4)&&!s.flags.triedBattle },
-  { id:"learnSkill", text:"기술이 없으면 이길 수 없어요! 포켓몬 센터에서 견제 기술을 배우세요.", check:(s)=>s.flags.triedBattle&&!s.flags.firstTrain },
-  { id:"battles",    text:"감염된 포켓몬 7곳을 모두 치유하세요!", check:(s)=>s.flags.firstTrain&&s.battlesDone.filter(id=>id!=="B00").length<7 },
-  { id:"hyeon",      text:"창고가 교실로 변했어요! 정현중 반장을 만나 최종 퀴즈를 푸세요!", check:(s)=>s.flags.warehouseTransformed&&!s.flags.metHyeon },
-  { id:"final",      text:"정현중 반장에게 다이어그램 퀴즈에 도전하세요!", check:(s)=>s.flags.metHyeon&&!s.flags.finalDone },
-  { id:"ending",     text:"🎉 신의국 재건 완료! 새 포켓몬들이 기다려요 — 법원·청사·도서관·특허법원을 탐험해보세요!", check:(s)=>s.flags.finalDone },
+  { id:"start",   text:"입구 풀숲에서 민쥬를 만나세요!", check:(s)=>!s.flags.gotMin },
+  { id:"boss",    text:"민쥬와 함께 이세린 독재자를 격퇴하세요!", check:(s)=>s.flags.gotMin && !s.flags.bossBeaten },
+  { id:"meet3",   text:"국이(국회의사당)·행이(정부서울청사)·법이(대법원 풀숲)를 만나세요! 만나는 즉시 스킬이 준비돼요.", check:(s)=>s.flags.bossBeaten && !(s.dex.includes(2)&&s.dex.includes(3)&&s.dex.includes(4)) },
+  { id:"battles", text:"감염된 포켓몬 7곳을 모두 치유하세요! (보라 글로우 배틀 트리거)", check:(s)=>s.dex.includes(2)&&s.dex.includes(3)&&s.dex.includes(4)&&s.battlesDone.filter(id=>id!=="B00").length<7 },
+  { id:"hyeon",   text:"창고가 교실로 변했어요! 정현중 반장을 만나 최종 퀴즈를 푸세요!", check:(s)=>s.flags.warehouseTransformed&&!s.flags.metHyeon },
+  { id:"final",   text:"정현중 반장에게 다이어그램 퀴즈에 도전하세요!", check:(s)=>s.flags.metHyeon&&!s.flags.finalDone },
+  { id:"ending",  text:"🎉 신의국 재건 완료! 숨겨진 포켓몬들이 기다려요 — 법원·청사·도서관·특허법원을 탐험해보세요!", check:(s)=>s.flags.finalDone },
 ];
 
 const FLOWERS = [
