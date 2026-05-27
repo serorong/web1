@@ -7,6 +7,7 @@ window.AUDIO = (() => {
   let actx = null;
   let muted = false;
   let currentBGM = null;
+  let lastBGMType = null;  // 음소거 전 재생 중이던 BGM 타입 기억
   let schedulerTimer = null;
   const SCHEDULE_AHEAD = 0.18;
   const LOOKAHEAD_MS = 30;
@@ -243,11 +244,11 @@ window.AUDIO = (() => {
   function toggle() {
     muted = !muted;
     if (muted) {
+      lastBGMType = currentBGM; // stopBGM() 이전에 저장 (stopBGM이 currentBGM을 null로 초기화함)
       stopBGM();
     } else {
-      const t = currentBGM;
-      currentBGM = null;
-      if (t) startBGM(t);
+      // 음소거 해제: 마지막으로 재생 중이던 BGM 재시작
+      if (lastBGMType) startBGM(lastBGMType);
     }
     return muted;
   }
