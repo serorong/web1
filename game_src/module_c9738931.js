@@ -324,6 +324,7 @@ function handleHeunEvent(){
     state.flags.gotHeun = true;
     addPokemon(5);
     save();
+    setTimeout(checkAllHiddenComplete, 600);
   });
 }
 
@@ -345,6 +346,7 @@ function handleFamilyEvent(){
     state.flags.gotFamily = true;
     addPokemon(6);
     save();
+    setTimeout(checkAllHiddenComplete, 600);
   });
 }
 
@@ -365,6 +367,7 @@ function handleSupremeEvent(){
     state.flags.gotSupreme = true;
     addPokemon(7);
     save();
+    setTimeout(checkAllHiddenComplete, 600);
   });
 }
 
@@ -399,11 +402,27 @@ function handleSejongEvent(){
         addPokemon(8);
         save();
         window.UI.toast("🏛️ 청사이를 획득했어요!");
+        setTimeout(checkAllHiddenComplete, 600);
       } else {
         window.UI.toast("아쉬워요. 다시 도전해보세요!");
       }
     }), 300);
   });
+}
+
+// ── 숨겨진 포켓몬 4마리 모두 수집 완료 체크 ──
+function checkAllHiddenComplete(){
+  const f = state.flags;
+  if(f.gotHeun && f.gotFamily && f.gotSupreme && f.gotSejong && !f.allHiddenDone){
+    f.allHiddenDone = true;
+    save();
+    setTimeout(() => {
+      window.UI.showDialog([
+        "자 이제 정말 끝이야! 수고 많았어.",
+        "이제 수학 단원평가를 하러 가자!"
+      ], "착한 이세린 선생님");
+    }, 800);
+  }
 }
 
 // ── 대전 특허법원 (Padlet 이동) ──

@@ -215,6 +215,48 @@ function renderFlowerTab(G){
 let gardenOnSave = null;
 let gardenPlants = new Array(16).fill(null);
 
+// 맵과 동일한 꽃 픽셀아트를 canvas에 그림
+function drawFlowerSprite(canvas, kind, size){
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  const px = 0, py = 0, s = size;
+  // 배경 (흙)
+  ctx.fillStyle = "#8b6340"; ctx.fillRect(px,py,s,s);
+  if(kind === "행정부"){
+    // 오렌지꽃 (tile 30)
+    ctx.fillStyle = "#5aa847"; ctx.fillRect(px,py,s,s);
+    ctx.fillStyle = "#2d5a1f"; ctx.fillRect(px+s*0.45,py+s*0.6,2,s*0.35);
+    ctx.fillStyle = "#ff8a3c";
+    ctx.fillRect(px+s*0.4,py+s*0.15,s*0.2,s*0.2);
+    ctx.fillRect(px+s*0.4,py+s*0.5,s*0.2,s*0.15);
+    ctx.fillRect(px+s*0.15,py+s*0.3,s*0.2,s*0.25);
+    ctx.fillRect(px+s*0.65,py+s*0.3,s*0.2,s*0.25);
+    ctx.fillStyle = "#ffd23f"; ctx.fillRect(px+s*0.35,py+s*0.3,s*0.3,s*0.25);
+    ctx.fillStyle = "#c08020"; ctx.fillRect(px+s*0.45,py+s*0.4,s*0.1,s*0.05);
+  } else if(kind === "국회"){
+    // 파랑꽃 (tile 31)
+    ctx.fillStyle = "#5aa847"; ctx.fillRect(px,py,s,s);
+    ctx.fillStyle = "#2d5a1f"; ctx.fillRect(px+s*0.45,py+s*0.6,2,s*0.35);
+    ctx.fillStyle = "#5cb3ff";
+    ctx.fillRect(px+s*0.4,py+s*0.1,s*0.2,s*0.5);
+    ctx.fillRect(px+s*0.1,py+s*0.25,s*0.8,s*0.2);
+    ctx.fillStyle = "#2a6fbe"; ctx.fillRect(px+s*0.2,py+s*0.5,s*0.6,s*0.08);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(px+s*0.4,py+s*0.3,s*0.2,s*0.18);
+  } else {
+    // 보라꽃 (tile 32, 법원)
+    ctx.fillStyle = "#5aa847"; ctx.fillRect(px,py,s,s);
+    ctx.fillStyle = "#2d5a1f"; ctx.fillRect(px+s*0.45,py+s*0.6,2,s*0.35);
+    ctx.fillStyle = "#c8a0ff"; ctx.fillRect(px+s*0.25,py+s*0.15,s*0.5,s*0.45);
+    ctx.fillStyle = "#9070d0";
+    ctx.fillRect(px+s*0.2,py+s*0.25,s*0.1,s*0.2);
+    ctx.fillRect(px+s*0.7,py+s*0.25,s*0.1,s*0.2);
+    ctx.fillRect(px+s*0.35,py+s*0.5,s*0.3,s*0.08);
+    ctx.fillStyle = "#ffd23f"; ctx.fillRect(px+s*0.4,py+s*0.3,s*0.2,s*0.2);
+    ctx.fillStyle = "#c08020"; ctx.fillRect(px+s*0.45,py+s*0.38,s*0.1,s*0.06);
+  }
+}
+
 function openGarden(G, onSave){
   gardenOnSave = onSave || null;
   gardenPlants = G.gardenPlants ? [...G.gardenPlants] : new Array(16).fill(null);
@@ -229,6 +271,8 @@ function renderGarden(G){
   const found = new Set(G ? (G.flowersFound || []) : []);
   const flowers = window.DATA.FLOWERS || [];
   const flowerColors = { "법원":"#c8a0ff", "국회":"#5cb3ff", "행정부":"#ff7a5c" };
+  const picker = $("garden-picker");
+  if(picker) picker.innerHTML = "";
 
   for(let i = 0; i < 16; i++){
     const cell = document.createElement("div");
@@ -241,18 +285,32 @@ function renderGarden(G){
         cell.classList.add("planted");
         cell.style.background = color + "30";
         cell.style.borderColor = color;
-        cell.innerHTML = `
-          <div style="font-size:22px; line-height:1.1;">🌸</div>
-          <div style="font-size:9px; color:#2a1a05; line-height:1.3; margin-top:2px;">${f.text.slice(0,28)}…</div>
-          <button class="garden-remove-btn" data-slot="${i}" title="제거">✕</button>
-        `;
+        // 꽃 스프라이트 canvas
+        const cv = document.createElement("canvas");
+        cv.style.cssText = "width:44px;height:44px;image-rendering:pixelated;display:block;margin:0 auto 2px;";
+        drawFlowerSprite(cv, f.kind, 44);
+        cell.appendChild(cv);
+        const label = document.createElement("div");
+        label.style.cssText = "font-size:8px;color:#2a1a05;line-height:1.2;";
+        label.textContent = `No.${f.id}`;
+        cell.appendChild(label);
+        const rmBtn = document.createElement("button");
+        rmBtn.className = "garden-remove-btn";
+        rmBtn.dataset.slot = i;
+        rmBtn.title = "제거";
+        rmBtn.textContent = "✕";
+        cell.appendChild(rmBtn);
       }
     } else {
-      cell.innerHTML = `
-        <div style="font-size:20px; opacity:0.4;">🌱</div>
-        <div style="font-size:9px; color:#7a5a30; margin-top:2px;">심기</div>
-      `;
+      const icon = document.createElement("div");
+      icon.style.cssText = "font-size:20px;opacity:0.4;";
+      icon.textContent = "🌱";
+      const lbl = document.createElement("div");
+      lbl.style.cssText = "font-size:9px;color:#7a5a30;margin-top:2px;";
+      lbl.textContent = "심기";
       cell.style.cursor = "pointer";
+      cell.appendChild(icon);
+      cell.appendChild(lbl);
       cell.addEventListener("click", () => showFlowerPicker(i, G));
     }
     grid.appendChild(cell);
@@ -281,29 +339,96 @@ function showFlowerPicker(slotIdx, G){
 
   const picker = $("garden-picker");
   if(!picker) return;
-  picker.innerHTML = `<div style="font-weight:700; margin-bottom:8px;">🌸 심을 꽃을 선택하세요</div>`;
+  picker.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.style.cssText = "font-weight:700;margin-bottom:8px;font-size:13px;";
+  header.textContent = "🌸 심을 꽃을 선택하세요";
+  picker.appendChild(header);
+
   const kindColor = { "법원":"#c8a0ff", "국회":"#5cb3ff", "행정부":"#ff7a5c" };
   available.forEach(f => {
-    const btn = document.createElement("button");
-    btn.className = "garden-pick-btn";
-    btn.style.background = (kindColor[f.kind] || "#ffd23f") + "40";
-    btn.style.borderColor = kindColor[f.kind] || "#ffd23f";
-    btn.innerHTML = `<b>${f.kind}</b> ${f.id}. ${f.text.slice(0, 30)}…`;
-    btn.addEventListener("click", () => {
-      gardenPlants[slotIdx] = f.id;
-      if(gardenOnSave) gardenOnSave([...gardenPlants]);
-      picker.innerHTML = "";
-      renderGarden(G);
-      toast(`🌸 꽃을 심었어요!`);
-    });
-    picker.appendChild(btn);
+    const row = document.createElement("button");
+    row.className = "garden-pick-btn";
+    row.style.background = (kindColor[f.kind] || "#ffd23f") + "30";
+    row.style.borderColor = kindColor[f.kind] || "#aaa";
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.gap = "8px";
+    // 작은 꽃 스프라이트
+    const cv = document.createElement("canvas");
+    cv.style.cssText = "width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;";
+    drawFlowerSprite(cv, f.kind, 28);
+    const txt = document.createElement("span");
+    txt.style.cssText = "font-size:11px;text-align:left;";
+    txt.innerHTML = `<b>${f.kind}</b> No.${f.id} — ${f.text.slice(0,24)}…`;
+    row.appendChild(cv);
+    row.appendChild(txt);
+    row.addEventListener("click", () => showFlowerConfirm(f, slotIdx, G));
+    picker.appendChild(row);
   });
+
   const cancelBtn = document.createElement("button");
   cancelBtn.className = "garden-pick-btn";
-  cancelBtn.style.background = "#f0e8d8";
+  cancelBtn.style.cssText = "background:#f0e8d8;margin-top:4px;";
   cancelBtn.textContent = "취소";
   cancelBtn.addEventListener("click", () => { picker.innerHTML = ""; });
   picker.appendChild(cancelBtn);
+}
+
+// 꽃 설명 확인 후 심기 확정
+function showFlowerConfirm(f, slotIdx, G){
+  const picker = $("garden-picker");
+  if(!picker) return;
+  picker.innerHTML = "";
+  const kindColor = { "법원":"#c8a0ff", "국회":"#5cb3ff", "행정부":"#ff7a5c" };
+
+  // 큰 꽃 스프라이트
+  const cvWrap = document.createElement("div");
+  cvWrap.style.cssText = "text-align:center;margin-bottom:8px;";
+  const cv = document.createElement("canvas");
+  cv.style.cssText = "width:72px;height:72px;image-rendering:pixelated;display:inline-block;border:2px solid #2a1a05;border-radius:4px;";
+  drawFlowerSprite(cv, f.kind, 72);
+  cvWrap.appendChild(cv);
+  picker.appendChild(cvWrap);
+
+  // 꽃 이름/분류
+  const title = document.createElement("div");
+  title.style.cssText = "font-weight:700;font-size:13px;margin-bottom:4px;";
+  title.innerHTML = `<span style="background:${kindColor[f.kind]||'#ffd23f'};padding:2px 8px;border-radius:3px;font-size:11px;">${f.kind}</span> No.${f.id}`;
+  picker.appendChild(title);
+
+  // 설명 전문
+  const desc = document.createElement("div");
+  desc.style.cssText = "background:#fffaf0;border:2px solid #2a1a05;border-radius:4px;padding:10px;font-size:12px;line-height:1.6;margin-bottom:10px;";
+  desc.textContent = f.text;
+  picker.appendChild(desc);
+
+  // 버튼 행
+  const btns = document.createElement("div");
+  btns.style.cssText = "display:flex;gap:8px;";
+
+  const confirmBtn = document.createElement("button");
+  confirmBtn.className = "garden-pick-btn";
+  confirmBtn.style.cssText = "background:#5cb85c;color:#fff;border-color:#2d5a1f;flex:1;font-size:13px;";
+  confirmBtn.textContent = "✅ 확인 — 여기 심기";
+  confirmBtn.addEventListener("click", () => {
+    gardenPlants[slotIdx] = f.id;
+    if(gardenOnSave) gardenOnSave([...gardenPlants]);
+    picker.innerHTML = "";
+    renderGarden(G);
+    toast("🌸 꽃을 심었어요!");
+  });
+
+  const backBtn = document.createElement("button");
+  backBtn.className = "garden-pick-btn";
+  backBtn.style.cssText = "background:#f0e8d8;";
+  backBtn.textContent = "← 뒤로";
+  backBtn.addEventListener("click", () => showFlowerPicker(slotIdx, G));
+
+  btns.appendChild(backBtn);
+  btns.appendChild(confirmBtn);
+  picker.appendChild(btns);
 }
 
 // === 음악 토글 ===

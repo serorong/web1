@@ -170,12 +170,13 @@ function openSejongQuiz(onDone){
     `;
     const opts = $("sejong-opts");
     const correctText = q.opts[q.a];
+    // alts: 복수 정답 지원 (해당 문제에만 적용)
+    const correctSet = new Set([correctText, ...(q.alts || [])]);
     const shuffled = [...q.opts];
     for(let i = shuffled.length - 1; i > 0; i--){
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    const correctIdx = shuffled.indexOf(correctText);
     let answered = false;
     shuffled.forEach((label, i) => {
       const btn = document.createElement("button");
@@ -183,14 +184,21 @@ function openSejongQuiz(onDone){
       btn.textContent = label;
       btn.onclick = () => {
         if(answered) return; answered = true;
-        if(i === correctIdx){
+        if(correctSet.has(label)){
           btn.classList.add("correct");
           if(window.AUDIO) window.AUDIO.playCollectSFX();
           correct++;
+          // 복수 정답인 경우 나머지 정답도 표시
+          Array.from(opts.children).forEach((b, bi) => {
+            if(correctSet.has(shuffled[bi])) b.classList.add("correct");
+          });
         } else {
           btn.classList.add("wrong");
           if(window.AUDIO) window.AUDIO.playWrongSFX();
-          opts.children[correctIdx].classList.add("correct");
+          // 정답 표시
+          Array.from(opts.children).forEach((b, bi) => {
+            if(correctSet.has(shuffled[bi])) b.classList.add("correct");
+          });
           wrongCount++;
         }
         setTimeout(()=>{ idx++; step(); }, 1000);
